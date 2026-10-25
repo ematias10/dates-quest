@@ -93,27 +93,27 @@
             </span>
           </button>
 
-          <!-- Level 3 Button (Locked) -->
+          <!-- Level 3 Button (Active) -->
           <button
+            @click="startLevel3"
             @mouseenter="selectedMenuIndex = 2"
             @focus="selectedMenuIndex = 2"
-            @click="showLockedNotice(3)"
             :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px] opacity-60 hover:opacity-90',
-              selectedMenuIndex === 2 ? 'border-gray-400 text-gray-300' : 'border-gray-700 text-gray-500'
+              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
+              selectedMenuIndex === 2 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
             ]"
           >
             <div class="flex items-center gap-3">
               <span 
-                class="text-undertale-red text-base select-none"
-                :class="selectedMenuIndex === 2 ? 'opacity-100 scale-110' : 'opacity-0'"
+                class="text-undertale-red text-base select-none transition-transform"
+                :class="selectedMenuIndex === 2 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
               >
                 ❤
               </span>
               <span class="tracking-wider">LEVEL 3: HANGMAN SOUL</span>
             </div>
-            <span class="text-[10px] text-gray-500 uppercase tracking-widest">
-              [LOCKED]
+            <span class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block">
+              [READY]
             </span>
           </button>
 
@@ -202,6 +202,12 @@
       v-else-if="currentView === 'level2'"
       @back-to-menu="currentView = 'menu'"
     />
+
+    <!-- VIEW: Level 3 Hangman Game Component -->
+    <Level3_Hangman
+      v-else-if="currentView === 'level3'"
+      @back-to-menu="currentView = 'menu'"
+    />
   </div>
 </template>
 
@@ -209,6 +215,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import Level1_MultipleChoice from './components/Level1_MultipleChoice.vue'
 import Level2_Matching from './components/Level2_Matching.vue'
+import Level3_Hangman from './components/Level3_Hangman.vue'
 
 // Current active view: 'menu' or 'level1' or 'level2'
 const currentView = ref('menu')
@@ -257,6 +264,10 @@ const startLevel2 = () => {
   currentView.value = 'level2'
 }
 
+const startLevel3 = () => {
+  currentView.value = 'level3'
+}
+
 const showLockedNotice = (levelNum) => {
   if (noticeTimeout) clearTimeout(noticeTimeout)
   noticeMessage.value = `Level ${levelNum} is currently locked! Clear earlier levels first.`
@@ -281,6 +292,8 @@ const handleKeydown = (e) => {
       startLevel1()
     } else if (selectedMenuIndex.value === 1) {
       startLevel2()
+    } else if (selectedMenuIndex.value === 2) {
+      startLevel3()
     } else {
       showLockedNotice(selectedMenuIndex.value + 1)
     }

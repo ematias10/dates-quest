@@ -45,6 +45,21 @@ body {
   animation: soulPulse 0.8s ease-in-out infinite;
 }
 
+/* Screen Shake Effect (Undertale damage) */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-6px, 4px); }
+  30% { transform: translate(6px, -4px); }
+  45% { transform: translate(-4px, -3px); }
+  60% { transform: translate(4px, 3px); }
+  75% { transform: translate(-2px, 1px); }
+  90% { transform: translate(2px, -1px); }
+}
+
+.animate-shake {
+  animation: screenShake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+}
+
 /* Undertale button styling */
 .undertale-btn {
   display: flex;
