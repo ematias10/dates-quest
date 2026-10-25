@@ -10,7 +10,7 @@
       aria-hidden="true"
     ></div>
 
-    <!-- Top HUD: Undertale Style -->
+    <!-- Top HUD: Undertale Style connected to useGameState -->
     <header class="w-full flex items-center justify-between border-b-2 border-white pb-2 mb-2">
       <button 
         @click="$emit('back-to-menu')" 
@@ -24,30 +24,33 @@
       </div>
 
       <div class="text-xs sm:text-sm text-right flex items-center gap-2">
-        <span class="text-gray-400">EXP:</span>
-        <span class="text-undertale-yellow font-bold">{{ totalExp }}</span>
+        <span class="text-gray-400">SCORE:</span>
+        <span class="text-undertale-yellow font-bold">{{ score }}</span>
       </div>
     </header>
 
     <!-- ACTIVE COMBAT VIEW -->
     <main v-if="!isVictory && !isGameOver" class="w-full flex-1 flex flex-col justify-between">
       
-      <!-- TOP HALF: Boss Arena (Sprite & Boss HP) -->
+      <!-- TOP HALF: Boss Arena (Sprite & Boss HP: 250) -->
       <section class="w-full flex flex-col items-center justify-center my-auto py-2">
-        <!-- Boss HP Bar -->
+        <!-- Boss HP Bar (250 HP) -->
         <div class="w-full max-w-md pixel-box-sm p-2 mb-3 bg-black flex flex-col gap-1">
           <div class="flex justify-between items-center text-[10px] sm:text-xs">
             <span class="text-white font-bold tracking-wider">CALENDAR AMALGAMATE</span>
-            <span :class="bossHp <= 25 ? 'text-undertale-red font-bold animate-pulse' : 'text-undertale-yellow'">
-              HP {{ bossHp }}/100
+            <span :class="bossHp <= 60 ? 'text-undertale-red font-bold animate-pulse' : 'text-undertale-yellow'">
+              HP {{ bossHp }}/{{ maxBossHp }}
             </span>
           </div>
           <!-- Gauge -->
           <div class="w-full h-3 bg-red-950 border border-white overflow-hidden relative">
             <div 
               class="h-full bg-undertale-green transition-all duration-500 ease-out"
-              :style="{ width: `${bossHp}%` }"
-              :class="{ '!bg-undertale-yellow': bossHp <= 50 && bossHp > 25, '!bg-undertale-red': bossHp <= 25 }"
+              :style="{ width: `${(bossHp / maxBossHp) * 100}%` }"
+              :class="{ 
+                '!bg-undertale-yellow': bossHp <= 150 && bossHp > 60, 
+                '!bg-undertale-red': bossHp <= 60 
+              }"
             ></div>
           </div>
         </div>
@@ -107,7 +110,11 @@
           </div>
 
           <!-- Floating Combat Feedback Message -->
-          <div v-if="combatFeedback" class="mt-2 text-[11px] sm:text-xs font-bold" :class="combatFeedback.isSuccess ? 'text-undertale-green' : 'text-undertale-red'">
+          <div 
+            v-if="combatFeedback" 
+            class="mt-2 text-[11px] sm:text-xs font-bold transition-all" 
+            :class="combatFeedback.isSuccess ? 'text-undertale-green' : 'text-undertale-red'"
+          >
             * {{ combatFeedback.text }}
           </div>
         </div>
@@ -147,7 +154,7 @@
           </button>
         </form>
 
-        <!-- Player HP HUD -->
+        <!-- Player HP HUD (Bound to useGameState currentHP) -->
         <footer class="w-full flex items-center justify-between text-xs py-2 border-t border-gray-800">
           <div class="flex items-center gap-2">
             <span class="text-xs text-white font-bold">FRISK</span>
@@ -155,44 +162,57 @@
             <div class="w-24 sm:w-32 h-4 bg-red-900 border border-white relative overflow-hidden">
               <div 
                 class="h-full bg-undertale-yellow transition-all duration-300"
-                :style="{ width: `${(hp / maxHp) * 100}%` }"
+                :style="{ width: `${(currentHP / 20) * 100}%` }"
               ></div>
             </div>
-            <span class="text-[10px] text-gray-300">{{ hp }} / {{ maxHp }}</span>
+            <span class="text-[10px] text-gray-300">{{ currentHP }} / 20</span>
           </div>
 
           <div class="text-[10px] text-gray-400">
+            <span v-if="combo > 1" class="text-undertale-yellow font-bold mr-2">
+              COMBO x{{ combo }}!
+            </span>
             TURN: <span class="text-undertale-yellow">{{ turnNumber }}</span>
           </div>
         </footer>
       </section>
     </main>
 
-    <!-- VICTORY SCREEN: Defeated Boss -->
+    <!-- VICTORY SCREEN: Defeated Boss (Granted 5000 points and completeLevel(5)) -->
     <main v-else-if="isVictory" class="w-full flex-1 flex flex-col justify-center items-center text-center">
       <div class="pixel-box p-6 sm:p-8 w-full max-w-md">
         <div class="text-undertale-yellow text-4xl mb-3 soul-pulse select-none">★</div>
 
-        <h2 class="text-base sm:text-lg text-undertale-yellow mb-2 tracking-wider">
+        <h2 class="text-base sm:text-xl text-undertale-yellow mb-2 tracking-wider">
           YOU SAVED THE TIMELINE!
         </h2>
         
         <p class="text-xs text-white mb-4 leading-relaxed">
-          YOU EARNED 500 EXP AND 100 GOLD.
+          CALENDAR AMALGAMATE HAS BEEN CONQUERED!
         </p>
 
         <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-gray-300 space-y-2 text-left">
           <div class="flex justify-between">
-            <span class="text-gray-400">Final Outcome:</span>
-            <span class="text-undertale-green font-bold">Surface Unlocked</span>
+            <span class="text-gray-400">Boss Status:</span>
+            <span class="text-undertale-red font-bold">DEFEATED (0/250)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Victory Bonus:</span>
+            <span class="text-undertale-green font-bold">+5000 PTS</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Perfect Clear:</span>
+            <span :class="isLevelPerfect ? 'text-undertale-green font-bold' : 'text-gray-400'">
+              {{ isLevelPerfect ? 'YES (+1000 BONUS)' : 'NO' }}
+            </span>
           </div>
           <div class="flex justify-between">
             <span class="text-gray-400">Remaining HP:</span>
-            <span class="text-undertale-yellow">{{ hp }} / {{ maxHp }}</span>
+            <span class="text-undertale-yellow">{{ currentHP }} / 20</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-gray-400">Total EXP:</span>
-            <span class="text-undertale-yellow font-bold">{{ totalExp }}</span>
+            <span class="text-gray-400">Total Score:</span>
+            <span class="text-undertale-yellow font-bold">{{ score }}</span>
           </div>
         </div>
 
@@ -218,7 +238,7 @@
       </div>
     </main>
 
-    <!-- GAME OVER SCREEN: Frisk Shattered -->
+    <!-- GAME OVER SCREEN: currentHP reaches 0 -->
     <main v-else-if="isGameOver" class="w-full flex-1 flex flex-col justify-center items-center text-center">
       <div class="pixel-box p-6 sm:p-8 w-full max-w-md">
         <div class="flex justify-center items-center gap-2 mb-4">
@@ -235,6 +255,13 @@
         <p class="text-xs text-undertale-yellow leading-relaxed mb-6 font-bold">
           * Frisk! Don't let time stop now! Stay determined!
         </p>
+
+        <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-left">
+          <div class="flex justify-between">
+            <span class="text-gray-400">Boss HP Left:</span>
+            <span class="text-undertale-red font-bold">{{ bossHp }} / {{ maxBossHp }}</span>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-3">
           <button 
@@ -259,18 +286,29 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import vocabularyData from '../data.json'
+import { useGameState } from '../composables/useGameState'
 
 const emit = defineEmits(['back-to-menu'])
 
+// Connect Global Game State
+const {
+  score,
+  currentHP,
+  combo,
+  isLevelPerfect,
+  addScore,
+  takeDamage,
+  completeLevel,
+  startLevel
+} = useGameState()
+
 // Stats Configuration
-const maxHp = 20
-const damageToPlayer = 5
+const maxBossHp = 250
 const damageToBoss = 25
+const damageToPlayer = 5
 
 // State
-const hp = ref(maxHp)
-const bossHp = ref(100)
-const totalExp = ref(0)
+const bossHp = ref(maxBossHp)
 const turnNumber = ref(1)
 
 // Battle feedback & animations
@@ -287,128 +325,168 @@ const displayedQuestion = ref('')
 const isTyping = ref(false)
 let typeInterval = null
 
-// Question database built from data.json
-const questionsPool = [
-  {
-    prompt: 'Translate to English: "Navidad es en Diciembre"',
-    accepted: [
-      'christmas is in december',
-      'christmas is on december',
-      'christmas in december'
-    ],
-    displayCorrect: 'Christmas is in December'
-  },
-  {
-    prompt: 'Translate to English: "Halloween es en Octubre"',
-    accepted: [
-      'halloween is in october',
-      'halloween is on october',
-      'halloween in october'
-    ],
-    displayCorrect: 'Halloween is in October'
-  },
-  {
-    prompt: 'Translate to English: "Año Nuevo es en Enero"',
-    accepted: [
-      "new year's day is in january",
-      "new year is in january",
-      "new years day is in january",
-      "new year is on january"
-    ],
-    displayCorrect: "New Year's Day is in January"
-  },
-  {
-    prompt: 'Translate to English: "San Valentín es en Febrero"',
-    accepted: [
-      "valentine's day is in february",
-      "valentines day is in february",
-      "valentine is in february"
-    ],
-    displayCorrect: "Valentine's Day is in February"
-  },
-  {
-    prompt: 'Write the date of Halloween (e.g. October 31st):',
-    accepted: [
-      'october 31st',
-      'october 31',
-      '31st of october',
-      '31 october'
-    ],
-    displayCorrect: 'October 31st'
-  },
-  {
-    prompt: 'Write the date of Christmas (e.g. December 25th):',
-    accepted: [
-      'december 25th',
-      'december 25',
-      '25th of december',
-      '25 december'
-    ],
-    displayCorrect: 'December 25th'
-  },
-  {
-    prompt: 'Translate to English: "El invierno es frío"',
-    accepted: [
-      'winter is cold',
-      'winter is colder',
-      'the winter is cold'
-    ],
-    displayCorrect: 'Winter is cold'
-  },
-  {
-    prompt: 'Translate to English: "El verano es caluroso"',
-    accepted: [
-      'summer is warmest',
-      'summer is warm',
-      'summer is hot',
-      'the summer is hot',
-      'the summer is warm'
-    ],
-    displayCorrect: 'Summer is warm / warmest'
-  },
-  {
-    prompt: 'Translate to English: "Pascua es en Abril"',
-    accepted: [
-      'easter is in april',
-      'easter is on april',
-      'easter in april'
-    ],
-    displayCorrect: 'Easter is in April'
-  },
-  {
-    prompt: 'Translate to English: "El Día del Niño es en Agosto"',
-    accepted: [
-      "children's day is in august",
-      "childrens day is in august",
-      "children day is in august"
-    ],
-    displayCorrect: "Children's Day is in August"
-  }
-]
-
+// Non-repeating Question Pool
+const questionsPool = ref([])
 const currentQuestion = ref(null)
 
 const isVictory = computed(() => bossHp.value <= 0)
-const isGameOver = computed(() => hp.value <= 0)
+const isGameOver = computed(() => currentHP.value <= 0)
 
-// Helper: normalize text
+// Helper: Normalize text for flexible comparison
 const normalizeText = (text) => {
   return text
     .trim()
     .toLowerCase()
-    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '')
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()?"'«»]/g, '')
     .replace(/\s+/g, ' ')
 }
 
-// Select random question ensuring no direct repetition
-const pickQuestion = () => {
-  const filtered = questionsPool.filter(q => q !== currentQuestion.value)
-  const chosen = filtered[Math.floor(Math.random() * filtered.length)]
+// Helper: Shuffle array
+const shuffle = (array) => {
+  return [...array].sort(() => Math.random() - 0.5)
+}
+
+/**
+ * Builds the comprehensive question pool by combining all data in src/data.json:
+ * - Days of the week translations
+ * - Months translations
+ * - Seasons translations & weather questions
+ * - Holidays months, dates, and translations
+ */
+const buildQuestionPool = () => {
+  const pool = []
+
+  // 1. Days of the week translations
+  const days = vocabularyData.days || []
+  days.forEach(d => {
+    const englishName = typeof d === 'string' ? d : d.name
+    const spanishName = typeof d === 'object' && d.translation ? d.translation : englishName
+    pool.push({
+      prompt: `Translate to English: "${spanishName}"`,
+      accepted: [englishName.toLowerCase()],
+      displayCorrect: englishName
+    })
+  })
+
+  // 2. Months translations
+  const months = vocabularyData.months || []
+  months.forEach(m => {
+    const englishName = typeof m === 'string' ? m : m.name
+    const spanishName = typeof m === 'object' && m.translation ? m.translation : englishName
+    pool.push({
+      prompt: `Translate to English: "${spanishName}"`,
+      accepted: [englishName.toLowerCase()],
+      displayCorrect: englishName
+    })
+  })
+
+  // 3. Seasons translations & weather
+  const seasons = vocabularyData.seasons || []
+  seasons.forEach(s => {
+    const englishName = s.name
+    const spanishName = s.translation || englishName
+    pool.push({
+      prompt: `Translate season to English: "${spanishName}"`,
+      accepted: s.name.toLowerCase() === 'autumn' 
+        ? ['autumn', 'fall'] 
+        : [englishName.toLowerCase()],
+      displayCorrect: englishName
+    })
+
+    if (s.weather) {
+      pool.push({
+        prompt: `Which season is described as "${s.weather}"?`,
+        accepted: s.name.toLowerCase() === 'autumn' 
+          ? ['autumn', 'fall'] 
+          : [englishName.toLowerCase()],
+        displayCorrect: englishName
+      })
+    }
+  })
+
+  // 4. Holidays questions (month celebrated, translation, exact dates)
+  const holidays = vocabularyData.holidays || []
+  holidays.forEach(h => {
+    // Month celebrated
+    pool.push({
+      prompt: `In which month is ${h.name} celebrated?`,
+      accepted: [h.month.toLowerCase()],
+      displayCorrect: h.month
+    })
+
+    // Translate holiday
+    if (h.translation) {
+      pool.push({
+        prompt: `Translate holiday to English: "${h.translation}"`,
+        accepted: [h.name.toLowerCase()],
+        displayCorrect: h.name
+      })
+    }
+  })
+
+  // 5. Iconic Date & Phrase challenges
+  pool.push(
+    {
+      prompt: 'Write the date of Halloween (e.g. October 31st):',
+      accepted: ['october 31st', 'october 31', '31st october', '31 october'],
+      displayCorrect: 'October 31st'
+    },
+    {
+      prompt: 'Write the date of Christmas (e.g. December 25th):',
+      accepted: ['december 25th', 'december 25', '25th december', '25 december'],
+      displayCorrect: 'December 25th'
+    },
+    {
+      prompt: 'Write the date of New Year\'s Day (e.g. January 1st):',
+      accepted: ['january 1st', 'january 1', '1st january', '1 january'],
+      displayCorrect: 'January 1st'
+    },
+    {
+      prompt: 'Translate to English: "Navidad es en Diciembre"',
+      accepted: ['christmas is in december', 'christmas is on december', 'christmas in december'],
+      displayCorrect: 'Christmas is in December'
+    },
+    {
+      prompt: 'Translate to English: "Halloween es en Octubre"',
+      accepted: ['halloween is in october', 'halloween is on october', 'halloween in october'],
+      displayCorrect: 'Halloween is in October'
+    },
+    {
+      prompt: 'Translate to English: "El invierno es frío"',
+      accepted: ['winter is cold', 'the winter is cold', 'winter is colder'],
+      displayCorrect: 'Winter is cold'
+    },
+    {
+      prompt: 'Translate to English: "El verano es caluroso"',
+      accepted: ['summer is warm', 'summer is warmest', 'summer is hot', 'the summer is hot'],
+      displayCorrect: 'Summer is warm / hot'
+    }
+  )
+
+  return shuffle(pool)
+}
+
+// Initialize the question pool
+const initQuestionsPool = () => {
+  questionsPool.value = buildQuestionPool()
+}
+
+/**
+ * Extracts a question using .pop() to guarantee NO REPETITIONS in the same match.
+ */
+const pickNextQuestion = () => {
+  if (questionsPool.value.length === 0) {
+    // If all ~35 questions were exhausted, refill and shuffle
+    initQuestionsPool()
+  }
+
+  // Pop ensures this question is removed and never repeated
+  const chosen = questionsPool.value.pop()
   currentQuestion.value = chosen
   startTypewriter(chosen.prompt)
 }
 
-// Typewriter
+// Typewriter effect
 const startTypewriter = (text) => {
   if (typeInterval) clearInterval(typeInterval)
   displayedQuestion.value = ''
@@ -435,10 +513,13 @@ const fight = () => {
   const isMatch = currentQuestion.value.accepted.some(acc => normalizeText(acc) === inputNormalized)
 
   if (isMatch) {
-    // PLAYER ATTACKS BOSS
+    // PLAYER ATTACKS BOSS: Deals 25 damage, adds score 200, triggers slash & boss damage visual
     isBossHit.value = true
     bossHp.value = Math.max(0, bossHp.value - damageToBoss)
-    totalExp.value += 125
+    
+    // Global state: addScore(200) with combo bonus
+    addScore(200)
+
     combatFeedback.value = {
       isSuccess: true,
       text: `25 DAMAGE! You strike the Amalgamate with temporal truth!`
@@ -453,18 +534,25 @@ const fight = () => {
       userAnswer.value = ''
       combatFeedback.value = null
 
-      if (bossHp.value > 0) {
+      if (bossHp.value <= 0) {
+        // Boss Defeated: Award 5000 bonus points and completeLevel(5)
+        addScore(5000)
+        completeLevel(5)
+      } else {
         turnNumber.value++
-        pickQuestion()
+        pickNextQuestion()
         nextTick(() => inputRef.value?.focus())
       }
     }, 1200)
 
   } else {
-    // BOSS ATTACKS PLAYER
+    // BOSS ATTACKS PLAYER: Deals 5 damage via takeDamage(5), shakes screen, flashes red
     isShaking.value = true
     isRedFlash.value = true
-    hp.value = Math.max(0, hp.value - damageToPlayer)
+    
+    // Global state: takeDamage(5)
+    takeDamage(damageToPlayer)
+
     combatFeedback.value = {
       isSuccess: false,
       text: `MISSED! Answer: "${currentQuestion.value.displayCorrect}". You took ${damageToPlayer} damage!`
@@ -483,9 +571,9 @@ const fight = () => {
       userAnswer.value = ''
       combatFeedback.value = null
 
-      if (hp.value > 0) {
+      if (currentHP.value > 0) {
         turnNumber.value++
-        pickQuestion()
+        pickNextQuestion()
         nextTick(() => inputRef.value?.focus())
       }
     }, 1600)
@@ -494,14 +582,14 @@ const fight = () => {
 
 // Restart Battle
 const restartBattle = () => {
-  hp.value = maxHp
-  bossHp.value = 100
-  totalExp.value = 0
+  startLevel()
+  bossHp.value = maxBossHp
   turnNumber.value = 1
   userAnswer.value = ''
   combatFeedback.value = null
   isProcessingTurn.value = false
-  pickQuestion()
+  initQuestionsPool()
+  pickNextQuestion()
   nextTick(() => inputRef.value?.focus())
 }
 
