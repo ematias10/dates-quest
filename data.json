@@ -1,30 +1,108 @@
 {
   "days": [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday"
+    {
+      "name": "Monday",
+      "translation": "Lunes",
+      "hint": "First day of the typical work week"
+    },
+    {
+      "name": "Tuesday",
+      "translation": "Martes",
+      "hint": "The day after Monday"
+    },
+    {
+      "name": "Wednesday",
+      "translation": "Miércoles",
+      "hint": "Often called hump day in the middle of the work week"
+    },
+    {
+      "name": "Thursday",
+      "translation": "Jueves",
+      "hint": "The day before Friday"
+    },
+    {
+      "name": "Friday",
+      "translation": "Viernes",
+      "hint": "The last day of the work week before the weekend"
+    },
+    {
+      "name": "Saturday",
+      "translation": "Sábado",
+      "hint": "First day of the weekend"
+    },
+    {
+      "name": "Sunday",
+      "translation": "Domingo",
+      "hint": "Day of rest before the work week begins"
+    }
   ],
   "months": [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
+    {
+      "name": "January",
+      "translation": "Enero",
+      "hint": "The first month of the calendar year"
+    },
+    {
+      "name": "February",
+      "translation": "Febrero",
+      "hint": "The shortest month of the year"
+    },
+    {
+      "name": "March",
+      "translation": "Marzo",
+      "hint": "The third month, marking the start of autumn/spring"
+    },
+    {
+      "name": "April",
+      "translation": "Abril",
+      "hint": "The fourth month, known for Easter and April Fools"
+    },
+    {
+      "name": "May",
+      "translation": "Mayo",
+      "hint": "The fifth month, known for Mother's Day"
+    },
+    {
+      "name": "June",
+      "translation": "Junio",
+      "hint": "The sixth month, mid-year with solstice"
+    },
+    {
+      "name": "July",
+      "translation": "Julio",
+      "hint": "The seventh month, named after Julius Caesar"
+    },
+    {
+      "name": "August",
+      "translation": "Agosto",
+      "hint": "The eighth month, named after Augustus Caesar"
+    },
+    {
+      "name": "September",
+      "translation": "Septiembre",
+      "hint": "The ninth month, famous for Independence celebrations"
+    },
+    {
+      "name": "October",
+      "translation": "Octubre",
+      "hint": "The tenth month, known for Halloween celebrations"
+    },
+    {
+      "name": "November",
+      "translation": "Noviembre",
+      "hint": "The eleventh month, preceding the holiday season"
+    },
+    {
+      "name": "December",
+      "translation": "Diciembre",
+      "hint": "The twelfth and final month, famous for Christmas"
+    }
   ],
   "seasons": [
     {
       "name": "Spring",
+      "translation": "Primavera",
+      "hint": "Season of blooming flowers and warmer days",
       "months": [
         "September",
         "October",
@@ -35,6 +113,8 @@
     },
     {
       "name": "Summer",
+      "translation": "Verano",
+      "hint": "Hottest season of the year with sunny beach days",
       "months": [
         "December",
         "January",
@@ -45,6 +125,8 @@
     },
     {
       "name": "Autumn",
+      "translation": "Otoño",
+      "hint": "Season when leaves change color and temperatures drop",
       "months": [
         "March",
         "April",
@@ -55,6 +137,8 @@
     },
     {
       "name": "Winter",
+      "translation": "Invierno",
+      "hint": "Coldest season of the year with chilly weather and snow",
       "months": [
         "June",
         "July",
@@ -67,41 +151,57 @@
   "holidays": [
     {
       "name": "New Year's Day",
+      "translation": "Año Nuevo",
+      "hint": "Celebration of the first day of the new year",
       "month": "January",
       "description": "People celebrate the beginning of a new year with fireworks and parties."
     },
     {
       "name": "Valentine's Day",
+      "translation": "Día de San Valentín",
+      "hint": "Celebration of love, romance, and friendship",
       "month": "February",
       "description": "People celebrate love and friendship by giving cards or chocolates."
     },
     {
       "name": "Easter",
+      "translation": "Pascua",
+      "hint": "Spring religious holiday often celebrated with chocolate eggs",
       "month": "April",
       "description": "Many Christians celebrate the resurrection of Jesus."
     },
     {
       "name": "We Tripantu",
+      "translation": "We Tripantu (Año Nuevo Mapuche)",
+      "hint": "Indigenous Mapuche celebration of the winter solstice",
       "month": "June",
       "description": "The Mapuche celebrate the beginning of a new cycle of nature."
     },
     {
       "name": "Children's Day",
+      "translation": "Día del Niño",
+      "hint": "Special celebration dedicated to children, games, and gifts",
       "month": "August",
       "description": "Children receive gifts and enjoy games and activities."
     },
     {
       "name": "Chilean Independence Day",
+      "translation": "Fiestas Patrias de Chile",
+      "hint": "Chilean national holiday with cueca, empanadas, and fondas",
       "month": "September",
       "description": "Chile celebrates its independence with food, dancing, and parades."
     },
     {
       "name": "Halloween",
+      "translation": "Noche de Brujas",
+      "hint": "Spooky night with costumes and trick-or-treating",
       "month": "October",
       "description": "People wear costumes and ask for candy."
     },
     {
       "name": "Christmas",
+      "translation": "Navidad",
+      "hint": "Festive holiday with decorated pine trees and gift exchanges",
       "month": "December",
       "description": "Families decorate a tree and exchange gifts."
     }

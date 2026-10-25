@@ -314,16 +314,11 @@ const wordPool = computed(() => {
   const pool = []
 
   // Days
-  const days = vocabularyData.days || [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-  ]
+  const days = (vocabularyData.days || []).map(d => typeof d === 'string' ? d : d.name)
   days.forEach(d => pool.push({ word: d, category: 'Day of the Week' }))
 
   // Months
-  const months = vocabularyData.months || [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
+  const months = (vocabularyData.months || []).map(m => typeof m === 'string' ? m : m.name)
   months.forEach(m => pool.push({ word: m, category: 'Month of the Year' }))
 
   // Seasons

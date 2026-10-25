@@ -337,13 +337,8 @@ const shuffle = (array) => {
 
 // Generate new random date puzzle
 const generateDatePuzzle = () => {
-  const days = vocabularyData.days || [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-  ]
-  const months = vocabularyData.months || [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
+  const days = (vocabularyData.days || []).map(d => typeof d === 'string' ? d : d.name)
+  const months = (vocabularyData.months || []).map(m => typeof m === 'string' ? m : m.name)
 
   // Pick random day
   const randomDay = days[Math.floor(Math.random() * days.length)]
