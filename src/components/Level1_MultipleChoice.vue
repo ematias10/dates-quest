@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full max-w-xl mx-auto flex flex-col items-center justify-between min-h-[90vh] py-4 px-3 sm:px-6">
-    <!-- Top HUD: Undertale Style -->
+  <div class="w-full max-w-xl mx-auto flex flex-col items-center justify-between min-h-[90vh] py-4 px-3 sm:px-6 select-none">
+    <!-- Top HUD: Undertale Style connected to useGameState -->
     <header class="w-full flex items-center justify-between border-b-2 border-white pb-3 mb-4">
       <button 
         @click="$emit('back-to-menu')" 
@@ -11,7 +11,7 @@
 
       <div class="text-xs sm:text-sm tracking-widest text-center">
         <span class="text-undertale-yellow">LV 1</span>
-        <span class="ml-2 text-white">Q: {{ currentIndex + 1 }}/{{ totalQuestions }}</span>
+        <span class="ml-2 text-white">GOAL: {{ correctCount }}/{{ targetGoal }}</span>
       </div>
 
       <div class="text-xs sm:text-sm text-right flex items-center gap-2">
@@ -21,7 +21,7 @@
     </header>
 
     <!-- Quiz In Progress -->
-    <main v-if="!isGameOver" class="w-full flex-1 flex flex-col justify-between">
+    <main v-if="!isVictory && !isGameOver" class="w-full flex-1 flex flex-col justify-between">
       <!-- Dialogue Box with 4px border & Typewriter effect -->
       <section class="pixel-box p-4 sm:p-6 mb-6 relative">
         <!-- Asterisk indicator like Undertale dialogs -->
@@ -95,55 +95,61 @@
         </button>
       </section>
 
-      <!-- Health & Determination Bar -->
+      <!-- Health & Determination Bar (Bound to useGameState currentHP) -->
       <footer class="w-full flex items-center justify-between text-xs py-2 border-t border-gray-800">
         <div class="flex items-center gap-2">
           <span class="text-xs text-undertale-red font-bold">HP</span>
           <div class="w-24 sm:w-32 h-4 bg-red-900 border border-white relative overflow-hidden">
             <div 
               class="h-full bg-undertale-yellow transition-all duration-300"
-              :style="{ width: `${(hp / maxHp) * 100}%` }"
+              :style="{ width: `${(currentHP / 20) * 100}%` }"
             ></div>
           </div>
-          <span class="text-[10px] text-gray-300">{{ hp }} / {{ maxHp }}</span>
+          <span class="text-[10px] text-gray-300">{{ currentHP }} / 20</span>
         </div>
 
         <div class="text-[10px] text-gray-400">
-          STREAK: <span class="text-undertale-yellow">{{ streak }}</span>
+          <span v-if="combo > 1" class="text-undertale-yellow font-bold mr-2">
+            COMBO x{{ combo }}!
+          </span>
+          CORRECT: <span class="text-undertale-yellow font-bold">{{ correctCount }}/{{ targetGoal }}</span>
         </div>
       </footer>
     </main>
 
-    <!-- Game Over / Results Summary Screen -->
-    <main v-else class="w-full flex-1 flex flex-col justify-center items-center text-center">
+    <!-- VICTORY SCREEN (Triggered upon reaching 12 correct answers) -->
+    <main v-else-if="isVictory" class="w-full flex-1 flex flex-col justify-center items-center text-center">
       <div class="pixel-box p-6 sm:p-8 w-full max-w-md">
         <!-- Red Soul -->
         <div class="text-undertale-red text-4xl mb-4 soul-pulse select-none">❤</div>
 
         <h2 class="text-base sm:text-xl text-undertale-yellow mb-4">
-          {{ isVictorious ? 'VICTORY!' : 'DETERMINATION' }}
+          LEVEL 1 VICTORY!
         </h2>
 
         <p class="text-xs sm:text-sm text-gray-200 leading-relaxed mb-6">
-          {{ isVictorious 
-            ? '* You conquered Level 1! Your English date knowledge shines bright.' 
-            : '* Do not lose hope! You can always try again. Stay determined!' 
-          }}
+          * You conquered Level 1 with 12 correct answers! Your English date knowledge shines bright.
         </p>
 
         <!-- Stats breakdown -->
         <div class="border-t border-b border-gray-700 py-4 mb-6 text-xs space-y-2 text-left">
           <div class="flex justify-between">
-            <span class="text-gray-400">Total Questions:</span>
-            <span>{{ totalQuestions }}</span>
+            <span class="text-gray-400">Goal Achieved:</span>
+            <span class="text-undertale-yellow font-bold">12 / 12</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-gray-400">Correct Answers:</span>
-            <span class="text-undertale-green">{{ correctCount }}</span>
+            <span class="text-gray-400">Total Attempts:</span>
+            <span>{{ totalAttempts }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-gray-400">Accuracy:</span>
-            <span class="text-undertale-yellow">{{ accuracyPercentage }}%</span>
+            <span class="text-gray-400">Perfect Clear:</span>
+            <span :class="isLevelPerfect ? 'text-undertale-green font-bold' : 'text-gray-400'">
+              {{ isLevelPerfect ? 'YES (+1000 BONUS)' : 'NO' }}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Remaining HP:</span>
+            <span class="text-undertale-yellow">{{ currentHP }} / 20</span>
           </div>
           <div class="flex justify-between">
             <span class="text-gray-400">Final Score:</span>
@@ -169,28 +175,85 @@
         </div>
       </div>
     </main>
+
+    <!-- GAME OVER SCREEN (currentHP reached 0) -->
+    <main v-else-if="isGameOver" class="w-full flex-1 flex flex-col justify-center items-center text-center">
+      <div class="pixel-box p-6 sm:p-8 w-full max-w-md">
+        <!-- Broken Soul -->
+        <div class="flex justify-center items-center gap-2 mb-4">
+          <span class="text-undertale-red text-3xl select-none inline-block transform -rotate-12">💔</span>
+        </div>
+
+        <h2 class="text-base sm:text-lg text-undertale-red mb-3 tracking-wider">
+          GAME OVER
+        </h2>
+
+        <p class="text-xs text-gray-300 leading-relaxed mb-4">
+          * Do not lose hope! You can always try again.
+        </p>
+        <p class="text-xs text-undertale-yellow leading-relaxed mb-6 font-bold">
+          * Frisk! Stay determined!
+        </p>
+
+        <!-- Stats breakdown -->
+        <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs space-y-1.5 text-left">
+          <div class="flex justify-between">
+            <span class="text-gray-400">Correct answers before defeat:</span>
+            <span class="text-undertale-yellow font-bold">{{ correctCount }} / {{ targetGoal }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col gap-3">
+          <button 
+            @click="restartQuiz" 
+            class="undertale-btn justify-center py-3 text-xs sm:text-sm text-undertale-yellow border-undertale-yellow hover:bg-yellow-950/30"
+          >
+            <span class="text-undertale-red mr-2">❤</span> RETRY
+          </button>
+          
+          <button 
+            @click="$emit('back-to-menu')" 
+            class="undertale-btn justify-center py-3 text-xs sm:text-sm text-white hover:border-white"
+          >
+            MAIN MENU
+          </button>
+        </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import vocabularyData from '../data.json'
+import { useGameState } from '../composables/useGameState'
 
 const emit = defineEmits(['back-to-menu'])
 
-// Total questions per run
-const totalQuestions = 8
-const maxHp = 20
+// Connect Global Game State
+const {
+  score,
+  currentHP,
+  combo,
+  isLevelPerfect,
+  addScore,
+  takeDamage,
+  completeLevel,
+  startLevel
+} = useGameState()
+
+// Goal requirement: exactly 12 correct answers
+const targetGoal = 12
 
 // State
 const questions = ref([])
 const currentIndex = ref(0)
 const selectedOption = ref(null)
 const hoveredOption = ref(null)
-const score = ref(0)
-const hp = ref(maxHp)
-const streak = ref(0)
 const correctCount = ref(0)
+const totalAttempts = ref(0)
+const isVictory = ref(false)
 const isGameOver = ref(false)
 const feedback = ref(null)
 
@@ -204,16 +267,8 @@ const currentQuestion = computed(() => {
   return questions.value[currentIndex.value] || null
 })
 
-const isVictorious = computed(() => {
-  return correctCount.value >= Math.ceil(totalQuestions * 0.6)
-})
-
-const accuracyPercentage = computed(() => {
-  return totalQuestions > 0 ? Math.round((correctCount.value / totalQuestions) * 100) : 0
-})
-
 // --- Question Generator ---
-const generateQuestions = () => {
+const generateQuestions = (count = 20) => {
   const generated = []
   const days = (vocabularyData.days || []).map(d => typeof d === 'string' ? d : d.name)
   const months = (vocabularyData.months || []).map(m => typeof m === 'string' ? m : m.name)
@@ -224,9 +279,9 @@ const generateQuestions = () => {
   const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
 
   // Helper: Pick N random unique items from array excluding certain values
-  const getDistractors = (pool, excludeVal, count = 3) => {
+  const getDistractors = (pool, excludeVal, distractorCount = 3) => {
     const filtered = pool.filter(item => item !== excludeVal)
-    return shuffle(filtered).slice(0, count)
+    return shuffle(filtered).slice(0, distractorCount)
   }
 
   // Type 1: Day after
@@ -322,7 +377,7 @@ const generateQuestions = () => {
     createSeasonMonthQuestion
   ]
 
-  for (let i = 0; i < totalQuestions; i++) {
+  for (let i = 0; i < count; i++) {
     const generator = generators[i % generators.length]
     generated.push(generator())
   }
@@ -345,7 +400,7 @@ const startTypewriter = (text) => {
       clearInterval(typeInterval)
       isTyping.value = false
     }
-  }, 24)
+  }, 22)
 }
 
 const skipTypewriter = () => {
@@ -365,40 +420,79 @@ watch(currentQuestion, (newVal) => {
 
 // --- Option Selection and Feedback ---
 const selectOption = (option) => {
-  if (selectedOption.value !== null) return // Prevent multiple clicks
+  if (selectedOption.value !== null || isGameOver.value || isVictory.value) return
   selectedOption.value = option
+  totalAttempts.value++
 
   const isCorrect = option === currentQuestion.value.correct
 
   if (isCorrect) {
+    // Correct Answer: addScore(100) and increment correctCount
+    addScore(100)
     correctCount.value++
-    streak.value++
-    score.value += 100 + (streak.value * 20)
+
     feedback.value = {
       isCorrect: true,
       message: 'CORRECT! DETERMINATION +'
     }
+
+    // Check victory condition: exactly 12 correct answers
+    if (correctCount.value >= targetGoal) {
+      completeLevel(1)
+      setTimeout(() => {
+        feedback.value = null
+        selectedOption.value = null
+        hoveredOption.value = null
+        isVictory.value = true
+      }, 1000)
+      return
+    }
+
+    // Advance to next question after 1s
+    setTimeout(() => {
+      feedback.value = null
+      selectedOption.value = null
+      hoveredOption.value = null
+
+      advanceToNextQuestion()
+    }, 1000)
+
   } else {
-    streak.value = 0
-    hp.value = Math.max(0, hp.value - 5)
+    // Incorrect Answer: takeDamage(2)
+    takeDamage(2)
+
     feedback.value = {
       isCorrect: false,
       message: `WRONG! It was "${currentQuestion.value.correct}"`
     }
-  }
 
-  // Automatic advance after 1000ms (1 second) as required
-  setTimeout(() => {
-    feedback.value = null
-    selectedOption.value = null
-    hoveredOption.value = null
-
-    if (currentIndex.value + 1 < totalQuestions && hp.value > 0) {
-      currentIndex.value++
-    } else {
+    // If currentHP reaches 0, launch Game Over IMMEDIATELY without advancing
+    if (currentHP.value <= 0) {
+      feedback.value = null
+      selectedOption.value = null
+      hoveredOption.value = null
       isGameOver.value = true
+      return
     }
-  }, 1000)
+
+    // Otherwise, advance after 1 second
+    setTimeout(() => {
+      feedback.value = null
+      selectedOption.value = null
+      hoveredOption.value = null
+
+      advanceToNextQuestion()
+    }, 1000)
+  }
+}
+
+// Helper to advance or generate more questions if reaching pool end
+const advanceToNextQuestion = () => {
+  if (currentIndex.value + 1 >= questions.value.length) {
+    // Append more questions so player can always reach 12
+    questions.value = [...questions.value, ...generateQuestions(10)]
+  }
+  currentIndex.value++
 }
 
 // Dynamic styling for answer feedback
@@ -428,14 +522,14 @@ const getButtonStateClass = (option) => {
 
 // Restart quiz
 const restartQuiz = () => {
-  questions.value = generateQuestions()
+  startLevel()
+  questions.value = generateQuestions(24)
   currentIndex.value = 0
   selectedOption.value = null
   hoveredOption.value = null
-  score.value = 0
-  hp.value = maxHp
-  streak.value = 0
   correctCount.value = 0
+  totalAttempts.value = 0
+  isVictory.value = false
   isGameOver.value = false
   feedback.value = null
 }

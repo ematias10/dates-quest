@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-black text-white font-pixel flex flex-col justify-between selection:bg-undertale-yellow selection:text-black">
     
     <!-- VIEW: Main Menu -->
-    <div v-if="currentView === 'menu'" class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-between py-6 px-4 sm:px-8">
+    <div v-if="currentLevel === null" class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-between py-6 px-4 sm:px-8">
       
       <!-- Header / Title -->
       <header class="text-center my-4 sm:my-6">
@@ -40,204 +40,199 @@
       <main class="w-full flex-1 flex flex-col justify-center mb-6">
         <div class="text-xs sm:text-sm text-undertale-yellow mb-3 uppercase tracking-wider flex items-center justify-between">
           <span>* SELECT YOUR QUEST:</span>
-          <span class="text-[10px] text-gray-400">TOUCH OR CLICK</span>
+          <span class="text-[10px] text-gray-400">UNLOCKED: {{ maxLevelUnlocked }}/5</span>
         </div>
 
         <nav class="space-y-3" aria-label="Level Selection">
-          <!-- Level 1 Button (Active) -->
           <button
-            @click="startLevel1"
-            @mouseenter="selectedMenuIndex = 0"
-            @focus="selectedMenuIndex = 0"
+            v-for="(lvl, index) in levelDefinitions"
+            :key="lvl.id"
+            @click="handleSelectLevel(lvl.id)"
+            @mouseenter="selectedMenuIndex = index"
+            @focus="selectedMenuIndex = index"
+            :disabled="lvl.id > maxLevelUnlocked"
             :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
-              selectedMenuIndex === 0 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
+              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px] transition-all',
+              lvl.id > maxLevelUnlocked
+                ? 'opacity-40 border-gray-800 text-gray-600 bg-black cursor-not-allowed'
+                : selectedMenuIndex === index
+                  ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20'
+                  : 'text-white border-white'
             ]"
           >
             <div class="flex items-center gap-3">
               <!-- Heart Soul Indicator -->
               <span 
                 class="text-undertale-red text-base select-none transition-transform"
-                :class="selectedMenuIndex === 0 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
+                :class="selectedMenuIndex === index && lvl.id <= maxLevelUnlocked ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
               >
                 ❤
               </span>
-              <span class="tracking-wider">LEVEL 1: MULTIPLE CHOICE</span>
-            </div>
-            <span class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block">
-              [READY]
-            </span>
-          </button>
-
-          <!-- Level 2 Button (Active) -->
-          <button
-            @click="startLevel2"
-            @mouseenter="selectedMenuIndex = 1"
-            @focus="selectedMenuIndex = 1"
-            :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
-              selectedMenuIndex === 1 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
-            ]"
-          >
-            <div class="flex items-center gap-3">
               <span 
-                class="text-undertale-red text-base select-none transition-transform"
-                :class="selectedMenuIndex === 1 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
+                class="tracking-wider" 
+                :class="{ 'text-undertale-red': lvl.id === 5 && lvl.id <= maxLevelUnlocked }"
               >
-                ❤
+                {{ lvl.title }}
               </span>
-              <span class="tracking-wider">LEVEL 2: PAIR MATCHING</span>
             </div>
-            <span class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block">
-              [READY]
-            </span>
-          </button>
 
-          <!-- Level 3 Button (Active) -->
-          <button
-            @click="startLevel3"
-            @mouseenter="selectedMenuIndex = 2"
-            @focus="selectedMenuIndex = 2"
-            :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
-              selectedMenuIndex === 2 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
-            ]"
-          >
-            <div class="flex items-center gap-3">
-              <span 
-                class="text-undertale-red text-base select-none transition-transform"
-                :class="selectedMenuIndex === 2 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
-              >
-                ❤
-              </span>
-              <span class="tracking-wider">LEVEL 3: HANGMAN SOUL</span>
-            </div>
-            <span class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block">
-              [READY]
+            <!-- Status Badge -->
+            <span 
+              v-if="lvl.id > maxLevelUnlocked"
+              class="text-[10px] text-gray-600 uppercase tracking-widest"
+            >
+              [LOCKED]
             </span>
-          </button>
-
-          <!-- Level 4 Button (Active) -->
-          <button
-            @click="startLevel4"
-            @mouseenter="selectedMenuIndex = 3"
-            @focus="selectedMenuIndex = 3"
-            :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
-              selectedMenuIndex === 3 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
-            ]"
-          >
-            <div class="flex items-center gap-3">
-              <span 
-                class="text-undertale-red text-base select-none transition-transform"
-                :class="selectedMenuIndex === 3 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
-              >
-                ❤
-              </span>
-              <span class="tracking-wider">LEVEL 4: DATE BUILDER</span>
-            </div>
-            <span class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block">
-              [READY]
-            </span>
-          </button>
-
-          <!-- Level 5 Button (Active Boss Fight) -->
-          <button
-            @click="startLevel5"
-            @mouseenter="selectedMenuIndex = 4"
-            @focus="selectedMenuIndex = 4"
-            :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
-              selectedMenuIndex === 4 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
-            ]"
-          >
-            <div class="flex items-center gap-3">
-              <span 
-                class="text-undertale-red text-base select-none transition-transform"
-                :class="selectedMenuIndex === 4 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
-              >
-                ❤
-              </span>
-              <span class="tracking-wider text-undertale-red">LEVEL 5: BOSS FIGHT</span>
-            </div>
-            <span class="text-[10px] text-undertale-red uppercase tracking-widest hidden sm:inline-block font-bold">
+            <span 
+              v-else-if="lvl.id === 5"
+              class="text-[10px] text-undertale-red uppercase tracking-widest hidden sm:inline-block font-bold"
+            >
               [BOSS]
+            </span>
+            <span 
+              v-else
+              class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block"
+            >
+              [READY]
             </span>
           </button>
         </nav>
 
-        <!-- Temporary notice when clicking locked level -->
+        <!-- Temporary notice when attempting locked level -->
         <div v-if="noticeMessage" class="mt-4 text-center text-xs text-undertale-yellow">
           * {{ noticeMessage }}
         </div>
       </main>
 
-      <!-- Player HUD / Undertale Status Bar -->
-      <footer class="w-full pixel-box-sm p-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-300">
+      <!-- Player HUD / Undertale Status Bar with Score, HighScore and 20 HP bar -->
+      <footer class="w-full pixel-box-sm p-3 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-300">
         <div class="flex items-center gap-4">
           <span class="text-white font-bold">FRISK</span>
-          <span class="text-undertale-yellow">LV 1</span>
+          <span class="text-undertale-yellow">LV {{ maxLevelUnlocked }}</span>
         </div>
+
+        <!-- HP Bar reflecting currentHP out of 20 -->
         <div class="flex items-center gap-2">
           <span class="text-undertale-red font-bold">HP</span>
-          <div class="w-20 h-3 bg-red-900 border border-white">
-            <div class="h-full bg-undertale-yellow w-full"></div>
+          <div class="w-24 sm:w-28 h-3.5 bg-red-950 border border-white overflow-hidden relative">
+            <div 
+              class="h-full bg-undertale-yellow transition-all duration-300"
+              :style="{ width: `${(currentHP / 20) * 100}%` }"
+            ></div>
           </div>
-          <span class="text-[10px]">20/20</span>
+          <span class="text-[10px] text-gray-300">{{ currentHP }}/20</span>
         </div>
-        <div class="text-[10px] text-gray-400">
-          STATIC SPA
+
+        <!-- Score & High Score Display -->
+        <div class="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs">
+          <div>
+            <span class="text-gray-400">SCORE:</span>
+            <span class="text-undertale-yellow font-bold ml-1">{{ score }}</span>
+          </div>
+          <div>
+            <span class="text-gray-400">HI:</span>
+            <span class="text-undertale-green font-bold ml-1">{{ highScore }}</span>
+          </div>
         </div>
       </footer>
     </div>
 
-    <!-- VIEW: Level 1 Game Component -->
-    <Level1_MultipleChoice 
-      v-else-if="currentView === 'level1'"
-      @back-to-menu="currentView = 'menu'" 
-    />
+    <!-- VIEW: Active Game Level (Rendered dynamically) -->
+    <div v-else class="w-full min-h-screen flex flex-col justify-between">
+      
+      <!-- Persistent BACK TO MENU abort bar visible ONLY during gameplay -->
+      <header class="w-full border-b border-gray-800 bg-black/90 py-2 px-3 sm:px-6 sticky top-0 z-40">
+        <div class="max-w-2xl mx-auto flex items-center justify-between">
+          <button 
+            @click="returnToMenu" 
+            class="undertale-btn px-3 py-1 text-[11px] sm:text-xs text-gray-300 hover:text-undertale-yellow border-gray-700 hover:border-undertale-yellow min-h-[36px]"
+          >
+            &lt; BACK TO MENU
+          </button>
+          <span class="text-[10px] text-gray-500 uppercase tracking-widest hidden sm:inline-block">
+            ABORT QUEST
+          </span>
+        </div>
+      </header>
 
-    <!-- VIEW: Level 2 Matching Game Component -->
-    <Level2_Matching
-      v-else-if="currentView === 'level2'"
-      @back-to-menu="currentView = 'menu'"
-    />
-
-    <!-- VIEW: Level 3 Hangman Game Component -->
-    <Level3_Hangman
-      v-else-if="currentView === 'level3'"
-      @back-to-menu="currentView = 'menu'"
-    />
-
-    <!-- VIEW: Level 4 Date Builder Game Component -->
-    <Level4_DateBuilder
-      v-else-if="currentView === 'level4'"
-      @back-to-menu="currentView = 'menu'"
-    />
-
-    <!-- VIEW: Level 5 Boss Battle Game Component -->
-    <Level5_BossBattle
-      v-else-if="currentView === 'level5'"
-      @back-to-menu="currentView = 'menu'"
-    />
+      <!-- Dynamic Level Component -->
+      <div class="flex-1 flex flex-col justify-center">
+        <component 
+          :is="activeLevelComponent" 
+          @back-to-menu="returnToMenu" 
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useGameState } from './composables/useGameState'
+
+// Level Components
 import Level1_MultipleChoice from './components/Level1_MultipleChoice.vue'
 import Level2_Matching from './components/Level2_Matching.vue'
 import Level3_Hangman from './components/Level3_Hangman.vue'
 import Level4_DateBuilder from './components/Level4_DateBuilder.vue'
 import Level5_BossBattle from './components/Level5_BossBattle.vue'
 
-// Current active view: 'menu' or 'level1' or 'level2'
-const currentView = ref('menu')
+// Global Game State
+const {
+  maxLevelUnlocked,
+  score,
+  highScore,
+  currentHP
+} = useGameState()
 
-// Menu selection index
+// Component Mapping for Dynamic Routing
+const levelsMap = {
+  1: Level1_MultipleChoice,
+  2: Level2_Matching,
+  3: Level3_Hangman,
+  4: Level4_DateBuilder,
+  5: Level5_BossBattle
+}
+
+const levelDefinitions = [
+  { id: 1, title: 'LEVEL 1: MULTIPLE CHOICE' },
+  { id: 2, title: 'LEVEL 2: PAIR MATCHING' },
+  { id: 3, title: 'LEVEL 3: HANGMAN SOUL' },
+  { id: 4, title: 'LEVEL 4: DATE BUILDER' },
+  { id: 5, title: 'LEVEL 5: BOSS FIGHT' }
+]
+
+// Current Level state: null for menu, 1 to 5 for active levels
+const currentLevel = ref(null)
+
+const activeLevelComponent = computed(() => {
+  return currentLevel.value ? levelsMap[currentLevel.value] : null
+})
+
+// Navigation handlers
 const selectedMenuIndex = ref(0)
 const noticeMessage = ref('')
 let noticeTimeout = null
+
+const handleSelectLevel = (levelId) => {
+  if (levelId <= maxLevelUnlocked.value) {
+    currentLevel.value = levelId
+  } else {
+    showLockedNotice(levelId)
+  }
+}
+
+const returnToMenu = () => {
+  currentLevel.value = null
+}
+
+const showLockedNotice = (levelNum) => {
+  if (noticeTimeout) clearTimeout(noticeTimeout)
+  noticeMessage.value = `Level ${levelNum} is locked! Clear Level ${levelNum - 1} first.`
+  noticeTimeout = setTimeout(() => {
+    noticeMessage.value = ''
+  }, 2500)
+}
 
 // Intro Typewriter
 const introText = "* Long ago, monsters guarded the calendar gates. To escape the Underground, you must master the ancient dates, months, and days... Stay DETERMINED!"
@@ -270,57 +265,20 @@ const skipIntroTypewriter = () => {
   }
 }
 
-const startLevel1 = () => {
-  currentView.value = 'level1'
-}
-
-const startLevel2 = () => {
-  currentView.value = 'level2'
-}
-
-const startLevel3 = () => {
-  currentView.value = 'level3'
-}
-
-const startLevel4 = () => {
-  currentView.value = 'level4'
-}
-
-const startLevel5 = () => {
-  currentView.value = 'level5'
-}
-
-const showLockedNotice = (levelNum) => {
-  if (noticeTimeout) clearTimeout(noticeTimeout)
-  noticeMessage.value = `Level ${levelNum} is currently locked! Clear earlier levels first.`
-  noticeTimeout = setTimeout(() => {
-    noticeMessage.value = ''
-  }, 2500)
-}
-
-// Keyboard navigation support for authentic Undertale feel
+// Keyboard navigation support for menu
 const handleKeydown = (e) => {
-  if (currentView.value !== 'menu') return
+  if (currentLevel.value !== null) return
 
   if (e.key === 'ArrowDown') {
     e.preventDefault()
-    selectedMenuIndex.value = (selectedMenuIndex.value + 1) % 5
+    selectedMenuIndex.value = (selectedMenuIndex.value + 1) % levelDefinitions.length
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
-    selectedMenuIndex.value = (selectedMenuIndex.value - 1 + 5) % 5
+    selectedMenuIndex.value = (selectedMenuIndex.value - 1 + levelDefinitions.length) % levelDefinitions.length
   } else if (e.key === 'Enter') {
     e.preventDefault()
-    if (selectedMenuIndex.value === 0) {
-      startLevel1()
-    } else if (selectedMenuIndex.value === 1) {
-      startLevel2()
-    } else if (selectedMenuIndex.value === 2) {
-      startLevel3()
-    } else if (selectedMenuIndex.value === 3) {
-      startLevel4()
-    } else if (selectedMenuIndex.value === 4) {
-      startLevel5()
-    }
+    const targetLevelId = levelDefinitions[selectedMenuIndex.value].id
+    handleSelectLevel(targetLevelId)
   }
 }
 

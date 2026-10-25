@@ -1,6 +1,16 @@
 <template>
-  <div class="w-full max-w-2xl mx-auto flex flex-col items-center justify-between min-h-[90vh] py-4 px-3 sm:px-6">
-    <!-- Top HUD: Undertale Style -->
+  <div 
+    class="w-full max-w-2xl mx-auto flex flex-col items-center justify-between min-h-[90vh] py-4 px-3 sm:px-6 relative select-none"
+    :class="{ 'animate-shake': isShaking }"
+  >
+    <!-- Red Damage Flash Overlay -->
+    <div 
+      v-if="isRedFlash" 
+      class="fixed inset-0 bg-red-600/30 pointer-events-none z-50 transition-opacity duration-200"
+      aria-hidden="true"
+    ></div>
+
+    <!-- Top HUD: Undertale Style connected to useGameState -->
     <header class="w-full flex items-center justify-between border-b-2 border-white pb-3 mb-4">
       <button 
         @click="$emit('back-to-menu')" 
@@ -11,36 +21,39 @@
 
       <div class="text-xs sm:text-sm tracking-widest text-center">
         <span class="text-undertale-yellow">LV 2</span>
-        <span class="ml-2 text-white">PAIRS: {{ matchedPairCount }}/{{ totalPairs }}</span>
+        <span class="ml-2 text-white">BOARD: {{ currentBoardIndex + 1 }}/{{ totalBoards }}</span>
       </div>
 
       <div class="text-xs sm:text-sm text-right flex items-center gap-2">
-        <span class="text-gray-400">EXP:</span>
-        <span class="text-undertale-yellow font-bold">{{ expEarned }}</span>
+        <span class="text-gray-400">SCORE:</span>
+        <span class="text-undertale-yellow font-bold">{{ score }}</span>
       </div>
     </header>
 
-    <!-- Game Content -->
+    <!-- Game Content: Active Matching Board -->
     <div v-if="!isVictory && !isGameOver" class="w-full flex-1 flex flex-col justify-between">
+      
       <!-- Undertale Dialogue Box / Instruction Banner -->
       <section class="pixel-box p-3 sm:p-4 mb-4">
         <div class="flex items-start gap-2">
           <span class="text-undertale-yellow text-sm sm:text-base select-none">*</span>
-          <p class="text-[11px] sm:text-xs leading-relaxed text-white">
+          <p class="text-[11px] sm:text-xs leading-relaxed text-white min-h-[2.5rem] flex items-center">
             {{ dialogueMessage }}
           </p>
         </div>
 
-        <!-- Mode selector & Pair Counter -->
+        <!-- Board Indicator & Instructions -->
         <div class="mt-2 pt-2 border-t border-gray-800 flex justify-between items-center text-[10px] text-gray-400">
-          <span class="uppercase tracking-wider">QUEST: {{ currentModeName }}</span>
-          <span class="text-undertale-yellow">TAP ONE FROM EACH SIDE</span>
+          <span class="uppercase tracking-wider text-undertale-yellow font-bold">
+            {{ currentBoardTitle }}
+          </span>
+          <span class="text-gray-300">PAIRS: {{ matchedPairCount }}/4</span>
         </div>
       </section>
 
       <!-- Two-Column Matching Board (Grid 2 columns) -->
       <main class="w-full grid grid-cols-2 gap-2 sm:gap-4 my-auto">
-        <!-- Column A: Concepts (Holidays / Seasons) -->
+        <!-- Column A: Left items -->
         <div class="flex flex-col gap-2 sm:gap-3" role="region" aria-label="Concept Column A">
           <div class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest text-center pb-1 border-b border-gray-800">
             {{ columnATitle }}
@@ -74,7 +87,7 @@
           </button>
         </div>
 
-        <!-- Column B: Matches (Months / Weather) -->
+        <!-- Column B: Right items -->
         <div class="flex flex-col gap-2 sm:gap-3" role="region" aria-label="Concept Column B">
           <div class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest text-center pb-1 border-b border-gray-800">
             {{ columnBTitle }}
@@ -109,61 +122,64 @@
         </div>
       </main>
 
-      <!-- Bottom Status & HP Bar -->
+      <!-- Bottom Status & HP Bar (Bound to useGameState currentHP) -->
       <footer class="w-full flex items-center justify-between text-xs py-3 border-t border-gray-800 mt-4">
         <div class="flex items-center gap-2">
           <span class="text-xs text-undertale-red font-bold">HP</span>
           <div class="w-24 sm:w-32 h-4 bg-red-900 border border-white relative overflow-hidden">
             <div 
               class="h-full bg-undertale-yellow transition-all duration-300"
-              :style="{ width: `${(hp / maxHp) * 100}%` }"
+              :style="{ width: `${(currentHP / 20) * 100}%` }"
             ></div>
           </div>
-          <span class="text-[10px] text-gray-300">{{ hp }} / {{ maxHp }}</span>
+          <span class="text-[10px] text-gray-300">{{ currentHP }} / 20</span>
         </div>
 
-        <!-- Action / Switch Mode helper -->
-        <div class="flex items-center gap-2">
-          <button 
-            @click="switchMode" 
-            class="text-[10px] text-undertale-yellow hover:underline tracking-wider"
-          >
-            [CHANGE TOPIC]
-          </button>
+        <div class="text-[10px] text-gray-400">
+          <span v-if="combo > 1" class="text-undertale-yellow font-bold mr-2">
+            COMBO x{{ combo }}!
+          </span>
+          CLEARED: <span class="text-undertale-yellow font-bold">{{ currentBoardIndex }}/{{ totalBoards }}</span>
         </div>
       </footer>
     </div>
 
-    <!-- Victory Screen (Undertale dialogue box) -->
-    <div v-else-if="isVictory" class="w-full flex-1 flex flex-col justify-center items-center text-center">
+    <!-- Victory Screen (Triggered after Board 4 is cleared) -->
+    <main v-else-if="isVictory" class="w-full flex-1 flex flex-col justify-center items-center text-center">
       <div class="pixel-box p-6 sm:p-8 w-full max-w-md">
         <div class="text-undertale-red text-4xl mb-3 soul-pulse select-none">❤</div>
 
         <h2 class="text-base sm:text-lg text-undertale-yellow mb-2 tracking-wider">
-          YOU WON!
+          LEVEL 2 COMPLETE!
         </h2>
         
         <p class="text-xs text-white mb-4 leading-relaxed">
-          YOU EARNED {{ expEarned }} EXP AND 30 GOLD.
+          ALL 4 BOARDS CLEARED!
         </p>
 
         <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-gray-300 space-y-1.5 text-left">
           <div class="flex justify-between">
-            <span class="text-gray-400">Total Pairs:</span>
-            <span>{{ totalPairs }}</span>
+            <span class="text-gray-400">Boards Completed:</span>
+            <span class="text-undertale-yellow font-bold">4 / 4 Sequence</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-gray-400">Mistakes:</span>
-            <span :class="mistakes === 0 ? 'text-undertale-green' : 'text-undertale-red'">{{ mistakes }}</span>
+            <span class="text-gray-400">Perfect Run:</span>
+            <span :class="isLevelPerfect ? 'text-undertale-green font-bold' : 'text-gray-400'">
+              {{ isLevelPerfect ? 'YES (+1000 BONUS)' : 'NO' }}
+            </span>
           </div>
           <div class="flex justify-between">
             <span class="text-gray-400">Remaining HP:</span>
-            <span class="text-undertale-yellow">{{ hp }} / {{ maxHp }}</span>
+            <span class="text-undertale-yellow">{{ currentHP }} / 20</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Final Score:</span>
+            <span class="text-undertale-yellow font-bold">{{ score }}</span>
           </div>
         </div>
 
         <p class="text-[11px] text-gray-300 italic mb-6">
-          * Your soul vibrates with knowledge of the calendar.
+          * Your connection to the calendar grows stronger. Stay DETERMINED!
         </p>
 
         <div class="flex flex-col gap-3">
@@ -171,7 +187,7 @@
             @click="startNewGame" 
             class="undertale-btn justify-center py-3 text-xs sm:text-sm text-undertale-yellow border-undertale-yellow hover:bg-yellow-950/30"
           >
-            <span class="text-undertale-red mr-2">❤</span> PLAY ANOTHER SET
+            <span class="text-undertale-red mr-2">❤</span> PLAY LEVEL AGAIN
           </button>
           
           <button 
@@ -182,12 +198,14 @@
           </button>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Game Over Screen -->
-    <div v-else-if="isGameOver" class="w-full flex-1 flex flex-col justify-center items-center text-center">
+    <!-- Game Over Screen (currentHP reached 0) -->
+    <main v-else-if="isGameOver" class="w-full flex-1 flex flex-col justify-center items-center text-center">
       <div class="pixel-box p-6 sm:p-8 w-full max-w-md">
-        <div class="text-gray-600 text-4xl mb-3 select-none">💔</div>
+        <div class="flex justify-center items-center gap-2 mb-4">
+          <span class="text-undertale-red text-3xl select-none inline-block transform -rotate-12">💔</span>
+        </div>
 
         <h2 class="text-base sm:text-lg text-undertale-red mb-2 tracking-wider">
           GAME OVER
@@ -196,6 +214,13 @@
         <p class="text-xs text-gray-300 leading-relaxed mb-6">
           * You cannot give up just yet... Frisk! Stay determined!
         </p>
+
+        <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-left">
+          <div class="flex justify-between">
+            <span class="text-gray-400">Failed at:</span>
+            <span class="text-undertale-yellow font-bold">Board {{ currentBoardIndex + 1 }} / 4</span>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-3">
           <button 
@@ -213,63 +238,90 @@
           </button>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import vocabularyData from '../data.json'
+import { useGameState } from '../composables/useGameState'
 
 const emit = defineEmits(['back-to-menu'])
 
-// Configuration
-const maxHp = 20
-const pairsPerGame = 4
+// Connect Global Game State
+const {
+  score,
+  currentHP,
+  combo,
+  isLevelPerfect,
+  addScore,
+  takeDamage,
+  completeLevel,
+  startLevel
+} = useGameState()
 
-// State
-const hp = ref(maxHp)
-const expEarned = ref(0)
-const mistakes = ref(0)
+// Level Configuration
+const totalBoards = 4
+const pairsPerBoard = 4
+const damagePerFail = 3
+
+// Board Sequence State: 0 (Days), 1 (Months), 2 (Holidays), 3 (Seasons)
+const currentBoardIndex = ref(0)
 const isEvaluating = ref(false)
 const dialogueMessage = ref('Touch a concept from Column A, then its matching pair from Column B.')
 
-// Selection state
+// Visual animation states
+const isShaking = ref(false)
+const isRedFlash = ref(false)
+const isVictory = ref(false)
+
+// Selections
 const selectedA = ref(null)
 const selectedB = ref(null)
 const evaluationResult = ref(null) // null | 'correct' | 'wrong'
 
-// Items in current round
+// Items in current board
 const columnAItems = ref([])
 const columnBItems = ref([])
 
-// Current mode: 'holidays' or 'seasons'
-const currentMode = ref('holidays')
-
-const currentModeName = computed(() => {
-  return currentMode.value === 'holidays' ? 'Holidays & Months' : 'Seasons & Weather'
+const isGameOver = computed(() => {
+  return currentHP.value <= 0
 })
-
-const columnATitle = computed(() => {
-  return currentMode.value === 'holidays' ? 'Holidays' : 'Seasons'
-})
-
-const columnBTitle = computed(() => {
-  return currentMode.value === 'holidays' ? 'Months' : 'Weather'
-})
-
-const totalPairs = computed(() => columnAItems.value.length)
 
 const matchedPairCount = computed(() => {
   return columnAItems.value.filter(item => item.isMatched).length
 })
 
-const isVictory = computed(() => {
-  return totalPairs.value > 0 && matchedPairCount.value === totalPairs.value
+// Current Board Information
+const currentBoardTitle = computed(() => {
+  switch (currentBoardIndex.value) {
+    case 0: return 'BOARD 1: DAYS (EN ↔ ES)'
+    case 1: return 'BOARD 2: MONTHS (EN ↔ ES)'
+    case 2: return 'BOARD 3: HOLIDAYS & MONTHS'
+    case 3: return 'BOARD 4: MONTHS & SEASONS'
+    default: return ''
+  }
 })
 
-const isGameOver = computed(() => {
-  return hp.value <= 0
+const columnATitle = computed(() => {
+  switch (currentBoardIndex.value) {
+    case 0: return 'Days (EN)'
+    case 1: return 'Months (EN)'
+    case 2: return 'Holidays'
+    case 3: return 'Months'
+    default: return 'Concept A'
+  }
+})
+
+const columnBTitle = computed(() => {
+  switch (currentBoardIndex.value) {
+    case 0: return 'Días (ES)'
+    case 1: return 'Meses (ES)'
+    case 2: return 'Months'
+    case 3: return 'Seasons'
+    default: return 'Concept B'
+  }
 })
 
 // Helper: Shuffle array
@@ -277,63 +329,125 @@ const shuffle = (array) => {
   return [...array].sort(() => Math.random() - 0.5)
 }
 
-// Prepare Game Data
-const setupGameData = () => {
+/**
+ * Builds the board for the current index:
+ * Board 0: Days EN vs Days ES
+ * Board 1: Months EN vs Months ES
+ * Board 2: Holidays vs Months
+ * Board 3: Months vs Seasons
+ */
+const setupBoard = () => {
   selectedA.value = null
   selectedB.value = null
   evaluationResult.value = null
   isEvaluating.value = false
 
-  if (currentMode.value === 'holidays') {
-    // Pick pairsPerGame random holidays from vocabularyData
+  if (currentBoardIndex.value === 0) {
+    // Board 1: Days (English vs Spanish)
+    const pool = shuffle(vocabularyData.days || [])
+    const selected = pool.slice(0, pairsPerBoard)
+
+    const listA = selected.map((d, idx) => ({
+      id: `d_en_${idx}`,
+      pairKey: `day_${typeof d === 'string' ? d : d.name}`,
+      text: typeof d === 'string' ? d : d.name,
+      isMatched: false
+    }))
+
+    const listB = selected.map((d, idx) => ({
+      id: `d_es_${idx}`,
+      pairKey: `day_${typeof d === 'string' ? d : d.name}`,
+      text: typeof d === 'object' && d.translation ? d.translation : (typeof d === 'string' ? d : d.name),
+      isMatched: false
+    }))
+
+    columnAItems.value = shuffle(listA)
+    columnBItems.value = shuffle(listB)
+    dialogueMessage.value = '* Match each English day of the week with its Spanish translation.'
+
+  } else if (currentBoardIndex.value === 1) {
+    // Board 2: Months (English vs Spanish)
+    const pool = shuffle(vocabularyData.months || [])
+    const selected = pool.slice(0, pairsPerBoard)
+
+    const listA = selected.map((m, idx) => ({
+      id: `m_en_${idx}`,
+      pairKey: `month_${typeof m === 'string' ? m : m.name}`,
+      text: typeof m === 'string' ? m : m.name,
+      isMatched: false
+    }))
+
+    const listB = selected.map((m, idx) => ({
+      id: `m_es_${idx}`,
+      pairKey: `month_${typeof m === 'string' ? m : m.name}`,
+      text: typeof m === 'object' && m.translation ? m.translation : (typeof m === 'string' ? m : m.name),
+      isMatched: false
+    }))
+
+    columnAItems.value = shuffle(listA)
+    columnBItems.value = shuffle(listB)
+    dialogueMessage.value = '* Match each English month with its Spanish translation.'
+
+  } else if (currentBoardIndex.value === 2) {
+    // Board 3: Holidays vs Months
     const pool = shuffle(vocabularyData.holidays || [])
-    const selected = pool.slice(0, pairsPerGame)
+    const selected = pool.slice(0, pairsPerBoard)
 
     const listA = selected.map((h, idx) => ({
       id: `h_${idx}`,
-      pairKey: `pair_${idx}`,
+      pairKey: `holiday_${idx}`,
       text: h.name,
       isMatched: false
     }))
 
     const listB = selected.map((h, idx) => ({
       id: `m_${idx}`,
-      pairKey: `pair_${idx}`,
+      pairKey: `holiday_${idx}`,
       text: h.month,
       isMatched: false
     }))
 
     columnAItems.value = shuffle(listA)
     columnBItems.value = shuffle(listB)
-    dialogueMessage.value = '* Match each sacred holiday with its celebrated month.'
-  } else {
-    // Seasons mode: Season -> Weather
-    const pool = shuffle(vocabularyData.seasons || [])
-    const selected = pool.slice(0, Math.min(pairsPerGame, pool.length))
+    dialogueMessage.value = '* Match each sacred holiday with the month in which it is celebrated.'
 
-    const listA = selected.map((s, idx) => ({
-      id: `s_${idx}`,
-      pairKey: `pair_s_${idx}`,
-      text: s.name,
+  } else if (currentBoardIndex.value === 3) {
+    // Board 4: Months vs Seasons (4 distinct seasons, 1 distinct month from each)
+    const seasonsPool = vocabularyData.seasons || []
+    
+    // Pick 1 representative month from each of the 4 seasons
+    const pairs = seasonsPool.slice(0, 4).map((season, idx) => {
+      const monthPicked = season.months[Math.floor(Math.random() * season.months.length)]
+      return {
+        month: monthPicked,
+        season: season.name,
+        pairKey: `season_${season.name}`
+      }
+    })
+
+    const listA = pairs.map((p, idx) => ({
+      id: `sm_${idx}`,
+      pairKey: p.pairKey,
+      text: p.month,
       isMatched: false
     }))
 
-    const listB = selected.map((s, idx) => ({
-      id: `w_${idx}`,
-      pairKey: `pair_s_${idx}`,
-      text: `Weather: ${s.weather}`,
+    const listB = pairs.map((p, idx) => ({
+      id: `ss_${idx}`,
+      pairKey: p.pairKey,
+      text: p.season,
       isMatched: false
     }))
 
     columnAItems.value = shuffle(listA)
     columnBItems.value = shuffle(listB)
-    dialogueMessage.value = '* Pair the nature cycle with its typical weather.'
+    dialogueMessage.value = '* Match each month with its corresponding nature season.'
   }
 }
 
 // Select item in Column A
 const handleSelectA = (item) => {
-  if (isEvaluating.value || item.isMatched) return
+  if (isEvaluating.value || item.isMatched || isGameOver.value) return
 
   if (selectedA.value?.id === item.id) {
     selectedA.value = null // Deselect if tapped again
@@ -342,7 +456,7 @@ const handleSelectA = (item) => {
 
   selectedA.value = item
 
-  // If both columns have a selection, evaluate pair!
+  // If both columns selected, evaluate!
   if (selectedB.value) {
     evaluatePair()
   }
@@ -350,7 +464,7 @@ const handleSelectA = (item) => {
 
 // Select item in Column B
 const handleSelectB = (item) => {
-  if (isEvaluating.value || item.isMatched) return
+  if (isEvaluating.value || item.isMatched || isGameOver.value) return
 
   if (selectedB.value?.id === item.id) {
     selectedB.value = null // Deselect if tapped again
@@ -359,7 +473,7 @@ const handleSelectB = (item) => {
 
   selectedB.value = item
 
-  // If both columns have a selection, evaluate pair!
+  // If both columns selected, evaluate!
   if (selectedA.value) {
     evaluatePair()
   }
@@ -376,9 +490,11 @@ const evaluatePair = () => {
   if (isMatch) {
     evaluationResult.value = 'correct'
     dialogueMessage.value = `* Correct! "${itemA.text}" matches with "${itemB.text}".`
-    expEarned.value += 50
+    
+    // Connect to global state: addScore(50)
+    addScore(50)
 
-    // After brief flash, mark both items as matched & invisible/inactive
+    // Brief green flash then mark as matched
     setTimeout(() => {
       itemA.isMatched = true
       itemB.isMatched = true
@@ -387,29 +503,57 @@ const evaluatePair = () => {
       evaluationResult.value = null
       isEvaluating.value = false
 
-      if (matchedPairCount.value < totalPairs.value) {
-        dialogueMessage.value = '* Great pairing! Keep going, human.'
+      // Check if current board is cleared
+      if (matchedPairCount.value >= pairsPerBoard) {
+        handleBoardCleared()
       }
     }, 600)
+
   } else {
+    // Incorrect match
     evaluationResult.value = 'wrong'
-    mistakes.value++
-    hp.value = Math.max(0, hp.value - 4)
     dialogueMessage.value = `* Miss! "${itemA.text}" and "${itemB.text}" do not belong together.`
 
-    // After brief red flash, unmark both items
+    // Connect to global state: takeDamage(3)
+    takeDamage(damagePerFail)
+
+    // Trigger screen shake & red flash
+    isShaking.value = true
+    isRedFlash.value = true
+
     setTimeout(() => {
+      isRedFlash.value = false
+    }, 250)
+
+    setTimeout(() => {
+      isShaking.value = false
       selectedA.value = null
       selectedB.value = null
       evaluationResult.value = null
       isEvaluating.value = false
+    }, 500)
+  }
+}
+
+// Handle clearing a board
+const handleBoardCleared = () => {
+  if (currentBoardIndex.value + 1 < totalBoards) {
+    dialogueMessage.value = `* BOARD ${currentBoardIndex.value + 1} CLEARED! Preparing next board...`
+    setTimeout(() => {
+      currentBoardIndex.value++
+      setupBoard()
+    }, 800)
+  } else {
+    // Board 4 cleared! Level 2 Complete!
+    completeLevel(2)
+    setTimeout(() => {
+      isVictory.value = true
     }, 600)
   }
 }
 
 // Button visual states
 const getItemStateClass = (item, column) => {
-  // If matched, make inactive and invisible/faded
   if (item.isMatched) {
     return 'opacity-0 pointer-events-none'
   }
@@ -430,18 +574,12 @@ const getItemStateClass = (item, column) => {
   return 'border-white text-white hover:border-undertale-yellow hover:text-undertale-yellow'
 }
 
-// Change mode between Holidays and Seasons
-const switchMode = () => {
-  currentMode.value = currentMode.value === 'holidays' ? 'seasons' : 'holidays'
-  startNewGame()
-}
-
-// Reset Game
+// Start New Game (reset to board 0)
 const startNewGame = () => {
-  hp.value = maxHp
-  expEarned.value = 0
-  mistakes.value = 0
-  setupGameData()
+  startLevel()
+  currentBoardIndex.value = 0
+  isVictory.value = false
+  setupBoard()
 }
 
 onMounted(() => {
