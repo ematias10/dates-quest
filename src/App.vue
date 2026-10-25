@@ -287,6 +287,7 @@ let noticeTimeout = null
 
 const handleSelectLevel = (levelId) => {
   if (levelId <= maxLevelUnlocked.value) {
+    currentHP.value = 20
     currentLevel.value = levelId
   } else {
     showLockedNotice(levelId)
@@ -294,6 +295,7 @@ const handleSelectLevel = (levelId) => {
 }
 
 const returnToMenu = () => {
+  currentHP.value = 20
   currentLevel.value = null
 }
 

@@ -27,7 +27,7 @@ const loadStoredState = () => {
           maxLevelUnlocked: typeof parsed.maxLevelUnlocked === 'number' ? parsed.maxLevelUnlocked : DEFAULT_STATE.maxLevelUnlocked,
           score: typeof parsed.score === 'number' ? parsed.score : DEFAULT_STATE.score,
           highScore: typeof parsed.highScore === 'number' ? parsed.highScore : DEFAULT_STATE.highScore,
-          currentHP: typeof parsed.currentHP === 'number' ? parsed.currentHP : DEFAULT_STATE.currentHP
+          currentHP: typeof parsed.currentHP === 'number' && parsed.currentHP > 0 ? parsed.currentHP : DEFAULT_STATE.currentHP
         }
       }
     } catch (error) {
@@ -120,9 +120,10 @@ export function useGameState() {
   }
 
   /**
-   * Resets temporary level variables before starting a run.
+   * Resets temporary level variables and restores player HP before starting a run.
    */
   const startLevel = () => {
+    currentHP.value = 20
     combo.value = 0
     isLevelPerfect.value = true
   }
