@@ -117,27 +117,27 @@
             </span>
           </button>
 
-          <!-- Level 4 Button (Locked) -->
+          <!-- Level 4 Button (Active) -->
           <button
+            @click="startLevel4"
             @mouseenter="selectedMenuIndex = 3"
             @focus="selectedMenuIndex = 3"
-            @click="showLockedNotice(4)"
             :class="[
-              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px] opacity-60 hover:opacity-90',
-              selectedMenuIndex === 3 ? 'border-gray-400 text-gray-300' : 'border-gray-700 text-gray-500'
+              'undertale-btn w-full p-4 text-xs sm:text-sm justify-between group min-h-[52px]',
+              selectedMenuIndex === 3 ? 'text-undertale-yellow border-undertale-yellow bg-yellow-950/20' : 'text-white border-white'
             ]"
           >
             <div class="flex items-center gap-3">
               <span 
-                class="text-undertale-red text-base select-none"
-                :class="selectedMenuIndex === 3 ? 'opacity-100 scale-110' : 'opacity-0'"
+                class="text-undertale-red text-base select-none transition-transform"
+                :class="selectedMenuIndex === 3 ? 'opacity-100 scale-110 soul-pulse' : 'opacity-0'"
               >
                 ❤
               </span>
               <span class="tracking-wider">LEVEL 4: DATE BUILDER</span>
             </div>
-            <span class="text-[10px] text-gray-500 uppercase tracking-widest">
-              [LOCKED]
+            <span class="text-[10px] text-undertale-green uppercase tracking-widest hidden sm:inline-block">
+              [READY]
             </span>
           </button>
 
@@ -208,6 +208,12 @@
       v-else-if="currentView === 'level3'"
       @back-to-menu="currentView = 'menu'"
     />
+
+    <!-- VIEW: Level 4 Date Builder Game Component -->
+    <Level4_DateBuilder
+      v-else-if="currentView === 'level4'"
+      @back-to-menu="currentView = 'menu'"
+    />
   </div>
 </template>
 
@@ -216,6 +222,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import Level1_MultipleChoice from './components/Level1_MultipleChoice.vue'
 import Level2_Matching from './components/Level2_Matching.vue'
 import Level3_Hangman from './components/Level3_Hangman.vue'
+import Level4_DateBuilder from './components/Level4_DateBuilder.vue'
 
 // Current active view: 'menu' or 'level1' or 'level2'
 const currentView = ref('menu')
@@ -268,6 +275,10 @@ const startLevel3 = () => {
   currentView.value = 'level3'
 }
 
+const startLevel4 = () => {
+  currentView.value = 'level4'
+}
+
 const showLockedNotice = (levelNum) => {
   if (noticeTimeout) clearTimeout(noticeTimeout)
   noticeMessage.value = `Level ${levelNum} is currently locked! Clear earlier levels first.`
@@ -294,6 +305,8 @@ const handleKeydown = (e) => {
       startLevel2()
     } else if (selectedMenuIndex.value === 2) {
       startLevel3()
+    } else if (selectedMenuIndex.value === 3) {
+      startLevel4()
     } else {
       showLockedNotice(selectedMenuIndex.value + 1)
     }
