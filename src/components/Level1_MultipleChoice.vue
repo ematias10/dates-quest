@@ -128,7 +128,7 @@
         </h2>
 
         <p class="text-xs sm:text-sm text-gray-200 leading-relaxed mb-6">
-          * You conquered Level 1 with 12 correct answers! Your English date knowledge shines bright.
+          * You conquered Level 1 with 12 correct answers, {{ playerName }}! Your English date knowledge shines bright.
         </p>
 
         <!-- Stats breakdown -->
@@ -192,7 +192,7 @@
           * Do not lose hope! You can always try again.
         </p>
         <p class="text-xs text-undertale-yellow leading-relaxed mb-6 font-bold">
-          * Frisk! Stay determined!
+          * You cannot give up just yet... {{ playerName }}! Stay determined!
         </p>
 
         <!-- Stats breakdown -->
@@ -233,6 +233,7 @@ const emit = defineEmits(['back-to-menu'])
 
 // Connect Global Game State
 const {
+  playerName,
   score,
   currentHP,
   combo,

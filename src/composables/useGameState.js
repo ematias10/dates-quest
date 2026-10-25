@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 const STORAGE_KEY = 'dates_quest_save'
 
 const DEFAULT_STATE = {
+  playerName: '',
   maxLevelUnlocked: 1,
   score: 0,
   highScore: 0,
@@ -22,6 +23,7 @@ const loadStoredState = () => {
       if (saved) {
         const parsed = JSON.parse(saved)
         return {
+          playerName: typeof parsed.playerName === 'string' ? parsed.playerName : DEFAULT_STATE.playerName,
           maxLevelUnlocked: typeof parsed.maxLevelUnlocked === 'number' ? parsed.maxLevelUnlocked : DEFAULT_STATE.maxLevelUnlocked,
           score: typeof parsed.score === 'number' ? parsed.score : DEFAULT_STATE.score,
           highScore: typeof parsed.highScore === 'number' ? parsed.highScore : DEFAULT_STATE.highScore,
@@ -38,6 +40,7 @@ const loadStoredState = () => {
 const initial = loadStoredState()
 
 // Global persistent reactive state
+const playerName = ref(initial.playerName)
 const maxLevelUnlocked = ref(initial.maxLevelUnlocked)
 const score = ref(initial.score)
 const highScore = ref(initial.highScore)
@@ -52,6 +55,7 @@ const persistState = () => {
   if (isStorageAvailable()) {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        playerName: playerName.value,
         maxLevelUnlocked: maxLevelUnlocked.value,
         score: score.value,
         highScore: highScore.value,
@@ -63,7 +67,7 @@ const persistState = () => {
   }
 }
 
-watch([maxLevelUnlocked, score, highScore, currentHP], persistState, { deep: true })
+watch([playerName, maxLevelUnlocked, score, highScore, currentHP], persistState, { deep: true })
 
 export function useGameState() {
   /**
@@ -127,6 +131,7 @@ export function useGameState() {
    * Resets all progress back to initial default state.
    */
   const resetGame = () => {
+    playerName.value = DEFAULT_STATE.playerName
     maxLevelUnlocked.value = DEFAULT_STATE.maxLevelUnlocked
     score.value = DEFAULT_STATE.score
     highScore.value = DEFAULT_STATE.highScore
@@ -144,6 +149,7 @@ export function useGameState() {
 
   return {
     // Persisted reactive state
+    playerName,
     maxLevelUnlocked,
     score,
     highScore,

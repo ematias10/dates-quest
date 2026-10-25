@@ -157,7 +157,7 @@
         <!-- Player HP HUD (Bound to useGameState currentHP) -->
         <footer class="w-full flex items-center justify-between text-xs py-2 border-t border-gray-800">
           <div class="flex items-center gap-2">
-            <span class="text-xs text-white font-bold">FRISK</span>
+            <span class="text-xs text-white font-bold uppercase">{{ playerName }}</span>
             <span class="text-xs text-undertale-red font-bold ml-2">HP</span>
             <div class="w-24 sm:w-32 h-4 bg-red-900 border border-white relative overflow-hidden">
               <div 
@@ -184,7 +184,7 @@
         <div class="text-undertale-yellow text-4xl mb-3 soul-pulse select-none">★</div>
 
         <h2 class="text-base sm:text-xl text-undertale-yellow mb-2 tracking-wider">
-          YOU SAVED THE TIMELINE!
+          YOU SAVED THE TIMELINE, {{ playerName }}!
         </h2>
         
         <p class="text-xs text-white mb-4 leading-relaxed">
@@ -217,7 +217,7 @@
         </div>
 
         <p class="text-[11px] text-gray-300 italic mb-6">
-          * The ancient calendar has been restored. You and your friends may finally return to the surface. Stay DETERMINED!
+          * The ancient calendar has been restored. You and your friends may finally return to the surface, {{ playerName }}. Stay DETERMINED!
         </p>
 
         <div class="flex flex-col gap-3">
@@ -253,7 +253,7 @@
           * The Calendar Amalgamate proved too formidable...
         </p>
         <p class="text-xs text-undertale-yellow leading-relaxed mb-6 font-bold">
-          * Frisk! Don't let time stop now! Stay determined!
+          * You cannot give up just yet... {{ playerName }}! Stay determined!
         </p>
 
         <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-left">
@@ -292,6 +292,7 @@ const emit = defineEmits(['back-to-menu'])
 
 // Connect Global Game State
 const {
+  playerName,
   score,
   currentHP,
   combo,

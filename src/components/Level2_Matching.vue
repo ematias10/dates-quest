@@ -179,7 +179,7 @@
         </div>
 
         <p class="text-[11px] text-gray-300 italic mb-6">
-          * Your connection to the calendar grows stronger. Stay DETERMINED!
+          * Your connection to the calendar grows stronger, {{ playerName }}. Stay DETERMINED!
         </p>
 
         <div class="flex flex-col gap-3">
@@ -212,7 +212,7 @@
         </h2>
 
         <p class="text-xs text-gray-300 leading-relaxed mb-6">
-          * You cannot give up just yet... Frisk! Stay determined!
+          * You cannot give up just yet... {{ playerName }}! Stay determined!
         </p>
 
         <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-left">
@@ -251,6 +251,7 @@ const emit = defineEmits(['back-to-menu'])
 
 // Connect Global Game State
 const {
+  playerName,
   score,
   currentHP,
   combo,

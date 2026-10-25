@@ -1,8 +1,51 @@
 <template>
   <div class="min-h-screen bg-black text-white font-pixel flex flex-col justify-between selection:bg-undertale-yellow selection:text-black">
     
-    <!-- VIEW: Main Menu -->
-    <div v-if="currentLevel === null" class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-between py-6 px-4 sm:px-8">
+    <!-- VIEW 1: Naming Screen (Shown when playerName is empty) -->
+    <div v-if="!playerName" class="w-full max-w-lg mx-auto flex-1 flex flex-col items-center justify-center py-8 px-4 text-center">
+      <div class="pixel-box p-6 sm:p-8 w-full bg-black">
+        <!-- Floating Red Heart -->
+        <div class="text-undertale-red text-3xl mb-4 soul-pulse select-none">❤</div>
+
+        <!-- Undertale Naming Header -->
+        <h2 class="text-xs sm:text-sm text-white mb-6 leading-relaxed">
+          * Name the fallen human.
+        </h2>
+
+        <!-- Naming Form -->
+        <form @submit.prevent="confirmPlayerName" class="flex flex-col items-center gap-5">
+          <input
+            v-model="tempName"
+            type="text"
+            maxlength="9"
+            autofocus
+            placeholder="NAME"
+            spellcheck="false"
+            class="w-full max-w-xs h-14 bg-black border-4 border-white text-center text-sm sm:text-base text-undertale-yellow font-pixel uppercase tracking-widest focus:border-undertale-yellow focus:outline-none placeholder-gray-700"
+          />
+
+          <p class="text-[10px] text-gray-500 uppercase tracking-widest">
+            (MAX 9 CHARACTERS)
+          </p>
+
+          <button
+            type="submit"
+            :disabled="!tempName.trim()"
+            class="undertale-btn justify-center w-full max-w-xs py-3 text-xs sm:text-sm uppercase tracking-wider font-bold transition-all"
+            :class="[
+              tempName.trim()
+                ? '!border-undertale-yellow !text-undertale-yellow bg-yellow-950/30 soul-pulse'
+                : 'opacity-40 border-gray-700 text-gray-600 cursor-not-allowed'
+            ]"
+          >
+            <span class="text-undertale-red mr-2">❤</span> [ CONFIRM ]
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW 2: Main Menu (Shown when playerName exists and no level is active) -->
+    <div v-else-if="currentLevel === null" class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-between py-6 px-4 sm:px-8">
       
       <!-- Header / Title -->
       <header class="text-center my-4 sm:my-6">
@@ -16,7 +59,7 @@
         </div>
       </header>
 
-      <!-- Undertale Story Dialogue Box -->
+      <!-- Undertale Story Dialogue Box Personalized with playerName -->
       <section class="pixel-box p-4 sm:p-6 mb-6">
         <div class="flex items-start gap-3">
           <span class="text-undertale-red text-base sm:text-lg select-none soul-pulse">❤</span>
@@ -98,16 +141,27 @@
           </button>
         </nav>
 
+        <!-- Subtle Rename Button at the bottom of the list -->
+        <div class="mt-4 text-center">
+          <button
+            @click="renamePlayer"
+            class="text-[10px] text-gray-400 hover:text-undertale-yellow underline tracking-wider uppercase transition-colors"
+          >
+            * [ RENAME ]
+          </button>
+        </div>
+
         <!-- Temporary notice when attempting locked level -->
-        <div v-if="noticeMessage" class="mt-4 text-center text-xs text-undertale-yellow">
+        <div v-if="noticeMessage" class="mt-2 text-center text-xs text-undertale-yellow">
           * {{ noticeMessage }}
         </div>
       </main>
 
-      <!-- Player HUD / Undertale Status Bar with Score, HighScore and 20 HP bar -->
+      <!-- Player HUD / Undertale Status Bar with Player Name, Score, HighScore and 20 HP bar -->
       <footer class="w-full pixel-box-sm p-3 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-300">
         <div class="flex items-center gap-4">
-          <span class="text-white font-bold">FRISK</span>
+          <!-- Personalized Player Name -->
+          <span class="text-white font-bold uppercase tracking-wider">{{ playerName }}</span>
           <span class="text-undertale-yellow">LV {{ maxLevelUnlocked }}</span>
         </div>
 
@@ -137,7 +191,7 @@
       </footer>
     </div>
 
-    <!-- VIEW: Active Game Level (Rendered dynamically) -->
+    <!-- VIEW 3: Active Game Level (Rendered dynamically) -->
     <div v-else class="w-full min-h-screen flex flex-col justify-between">
       
       <!-- Persistent BACK TO MENU abort bar visible ONLY during gameplay -->
@@ -167,7 +221,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useGameState } from './composables/useGameState'
 
 // Level Components
@@ -179,11 +233,28 @@ import Level5_BossBattle from './components/Level5_BossBattle.vue'
 
 // Global Game State
 const {
+  playerName,
   maxLevelUnlocked,
   score,
   highScore,
   currentHP
 } = useGameState()
+
+// Temporary name for input
+const tempName = ref('')
+
+const confirmPlayerName = () => {
+  const trimmed = tempName.value.trim()
+  if (trimmed) {
+    playerName.value = trimmed
+    startIntroTypewriter()
+  }
+}
+
+const renamePlayer = () => {
+  tempName.value = ''
+  playerName.value = ''
+}
 
 // Component Mapping for Dynamic Routing
 const levelsMap = {
@@ -235,7 +306,6 @@ const showLockedNotice = (levelNum) => {
 }
 
 // Intro Typewriter
-const introText = "* Long ago, monsters guarded the calendar gates. To escape the Underground, you must master the ancient dates, months, and days... Stay DETERMINED!"
 const introDisplayedText = ref('')
 const isTypingIntro = ref(false)
 let introInterval = null
@@ -245,6 +315,8 @@ const startIntroTypewriter = () => {
   introDisplayedText.value = ''
   isTypingIntro.value = true
   let i = 0
+
+  const introText = `* Long ago, monsters guarded the calendar gates. Welcome, ${playerName.value || 'human'}! To escape the Underground, you must master the ancient dates, months, and days... Stay DETERMINED!`
 
   introInterval = setInterval(() => {
     if (i < introText.length) {
@@ -260,14 +332,22 @@ const startIntroTypewriter = () => {
 const skipIntroTypewriter = () => {
   if (isTypingIntro.value) {
     if (introInterval) clearInterval(introInterval)
+    const introText = `* Long ago, monsters guarded the calendar gates. Welcome, ${playerName.value || 'human'}! To escape the Underground, you must master the ancient dates, months, and days... Stay DETERMINED!`
     introDisplayedText.value = introText
     isTypingIntro.value = false
   }
 }
 
+// Watch playerName changes to retrigger intro typewriter if needed
+watch(playerName, (newVal) => {
+  if (newVal) {
+    startIntroTypewriter()
+  }
+})
+
 // Keyboard navigation support for menu
 const handleKeydown = (e) => {
-  if (currentLevel.value !== null) return
+  if (!playerName.value || currentLevel.value !== null) return
 
   if (e.key === 'ArrowDown') {
     e.preventDefault()
@@ -283,7 +363,9 @@ const handleKeydown = (e) => {
 }
 
 onMounted(() => {
-  startIntroTypewriter()
+  if (playerName.value) {
+    startIntroTypewriter()
+  }
   window.addEventListener('keydown', handleKeydown)
 })
 

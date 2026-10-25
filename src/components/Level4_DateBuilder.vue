@@ -234,7 +234,7 @@
         </div>
 
         <p class="text-[11px] text-gray-300 italic mb-6">
-          * Your syntactic mastery of English dates is complete. Level 5 is now accessible!
+          * Your syntactic mastery of English dates is complete, {{ playerName }}. Level 5 is now accessible!
         </p>
 
         <div class="flex flex-col gap-3">
@@ -270,7 +270,7 @@
           * The calendar order shattered...
         </p>
         <p class="text-xs text-undertale-yellow leading-relaxed mb-6 font-bold">
-          * Frisk! Stay determined!
+          * You cannot give up just yet... {{ playerName }}! Stay determined!
         </p>
 
         <div class="border-t border-b border-gray-700 py-3 mb-6 text-xs text-left">
@@ -309,6 +309,7 @@ const emit = defineEmits(['back-to-menu'])
 
 // Connect Global Game State
 const {
+  playerName,
   score,
   currentHP,
   combo,
