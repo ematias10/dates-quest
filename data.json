@@ -1,0 +1,109 @@
+{
+  "days": [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ],
+  "months": [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ],
+  "seasons": [
+    {
+      "name": "Spring",
+      "months": [
+        "September",
+        "October",
+        "November"
+      ],
+      "weather": "warmer",
+      "activity": "go for a walk"
+    },
+    {
+      "name": "Summer",
+      "months": [
+        "December",
+        "January",
+        "February"
+      ],
+      "weather": "warmest",
+      "activity": "go to the beach"
+    },
+    {
+      "name": "Autumn",
+      "months": [
+        "March",
+        "April",
+        "May"
+      ],
+      "weather": "cooler",
+      "activity": "go hiking"
+    },
+    {
+      "name": "Winter",
+      "months": [
+        "June",
+        "July",
+        "August"
+      ],
+      "weather": "cold",
+      "activity": "build snowmen"
+    }
+  ],
+  "holidays": [
+    {
+      "name": "New Year's Day",
+      "month": "January",
+      "description": "People celebrate the beginning of a new year with fireworks and parties."
+    },
+    {
+      "name": "Valentine's Day",
+      "month": "February",
+      "description": "People celebrate love and friendship by giving cards or chocolates."
+    },
+    {
+      "name": "Easter",
+      "month": "April",
+      "description": "Many Christians celebrate the resurrection of Jesus."
+    },
+    {
+      "name": "We Tripantu",
+      "month": "June",
+      "description": "The Mapuche celebrate the beginning of a new cycle of nature."
+    },
+    {
+      "name": "Children's Day",
+      "month": "August",
+      "description": "Children receive gifts and enjoy games and activities."
+    },
+    {
+      "name": "Chilean Independence Day",
+      "month": "September",
+      "description": "Chile celebrates its independence with food, dancing, and parades."
+    },
+    {
+      "name": "Halloween",
+      "month": "October",
+      "description": "People wear costumes and ask for candy."
+    },
+    {
+      "name": "Christmas",
+      "month": "December",
+      "description": "Families decorate a tree and exchange gifts."
+    }
+  ]
+}
